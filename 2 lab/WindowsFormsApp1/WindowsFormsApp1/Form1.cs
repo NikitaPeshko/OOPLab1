@@ -88,16 +88,46 @@ namespace WindowsFormsApp1
 
 
             CurrentFigure.StartPoint = new Point(e.X, e.Y);
-           
+            PreDrawTimer.Enabled = true;
+
+
+        }
+        private void panel1_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (CurrentFigure.StartPoint.X < 0)
+                return;
+
+            if (!PreDrawTimer.Enabled)
+            {
+
+
+                TemporaryImage.Dispose();
+
+                TemporaryImage = (Bitmap)MainPicture.Clone();
+
+                pictureBox1.Image = TemporaryImage;
+                gr = Graphics.FromImage(TemporaryImage);
+                CurrentFigure.DrawPanel = gr;
+
+
+                CurrentFigure.PreDrawEndPoint = e.Location;
+                gr.Dispose();
+                PreDrawTimer.Enabled = true;
+
+
+
+            }
+
 
         }
 
 
 
+
         private void panel1_MouseUp(object sender, MouseEventArgs e)
         {
+            PreDrawTimer.Enabled = false;
 
-           
             try
             {
 
