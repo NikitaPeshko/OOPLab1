@@ -4,26 +4,27 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 using System.Windows.Forms;
 using System.Reflection;
-using System.Runtime;
+
 
 namespace WindowsFormsApp1
 {
     public partial class Form1 : Form
     {
         LinkedList<Type> UsedTypes = new LinkedList<Type>();
+        LinkedList<ICreateFig> Creators = new LinkedList<ICreateFig>();
+        UndoRedoStack FiguresBackBuffer = new UndoRedoStack(), FiguresFrontBuffer = null;
 
-        UndoStack St = new UndoStack();
+        
         Graphics gr;
         Pen pen;
         Figure CurrentFigure;
-        Bitmap MainPicture= new Bitmap(1000,1000), TemporaryImage = new Bitmap(1000, 1000);
+        Bitmap MainPicture = new Bitmap(1000, 1000), TemporaryImage = new Bitmap(1000, 1000);
         int FpsCounter = 0;
-        
-        
+
+
 
         public Form1()
         {
@@ -35,8 +36,8 @@ namespace WindowsFormsApp1
                 MessageBox.Show("Error. No figures");
                 Application.Exit();
             }
-            
-            
+
+
 
             comboBox1.SelectedIndex = 0;
             gr = Graphics.FromImage(MainPicture);
@@ -46,7 +47,9 @@ namespace WindowsFormsApp1
             pen = new Pen(Color.Black);
             pen.StartCap = pen.EndCap = System.Drawing.Drawing2D.LineCap.Round;
             pen.Width = PenWidthBar.Value;
-            CurrentFigure = (Figure)Activator.CreateInstance(UsedTypes.ElementAt<Type>(comboBox1.SelectedIndex), -1, -1, gr, pen, FillColorPanel.BackColor);
+
+            ICreateFig CurrentCreator = Creators.ElementAt<ICreateFig>(comboBox1.SelectedIndex);
+            CurrentFigure = CurrentCreator.Create(-1, -1, gr, pen, FillColorPanel.BackColor);
 
             pictureBox1.Image = MainPicture;
 
@@ -56,28 +59,27 @@ namespace WindowsFormsApp1
         private bool LoadModules()
         {
             bool FiguresExist = false;
-
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            Type[] types = assembly.GetTypes();
-            for (int i = 0; i < types.Length; i++)
+            try
             {
-                
-                foreach (PropertyInfo pi in types[i].GetProperties())
+                Assembly assembly = Assembly.GetExecutingAssembly();
+                Type[] types = assembly.GetTypes();
+                int k = 0;
+                for (int i = 0; i < types.Length; i++)
                 {
-                    
-                    if ( (pi.Name == "FigureName") && (pi.CanRead) && (!pi.CanWrite) )
+                    if (types[i].GetInterface(typeof(ICreateFig).FullName) != null)
                     {
-                        if (!types[i].IsAbstract)
-                        {
-                            UsedTypes.AddLast(types[i]);
-                            Figure tmp = (Figure)Activator.CreateInstance(types[i], -1, -1, null, null, FillColorPanel.BackColor);
-                            comboBox1.Items.Add(tmp.FigureName);
-                            FiguresExist = true;
-                        }                                                                 
-                        continue;
+                        Creators.AddLast((ICreateFig)Activator.CreateInstance(types[i]));
+
+
+                        comboBox1.Items.Add(Creators.ElementAt<ICreateFig>(k).Name);
+                        FiguresExist = true;
+                        k++;
                     }
                 }
-                
+            }
+            catch
+            {
+                FiguresExist = false;
             }
             return FiguresExist;
         }
@@ -126,6 +128,7 @@ namespace WindowsFormsApp1
 
         private void panel1_MouseUp(object sender, MouseEventArgs e)
         {
+
             PreDrawTimer.Enabled = false;
 
             try
@@ -137,11 +140,43 @@ namespace WindowsFormsApp1
 
                 if (e.Button == MouseButtons.Right)
                     CurrentFigure.EndOfCurrentFigure = true;
+
+
+
+
                 CurrentFigure.EndPoint = new Point(e.X, e.Y);
 
-                CurrentFigure.StartPoint = new Point(-2,-2);
+                if (FiguresBackBuffer.Count < 1)
+                {
+                    FiguresBackBuffer.Push(CurrentFigure);
+                    UndoButton.Enabled = true;
+                }
+                else
+                {
+                    if (FiguresBackBuffer.LastEnd())
+                    {
+                        FiguresBackBuffer.Push(CurrentFigure);
+                    }
+                    else
+                    {
+                        FiguresBackBuffer.Pop();
+                        FiguresBackBuffer.Push(CurrentFigure);
+                    }
+
+                }
+
+
+
+
+                CurrentFigure.StartPoint = new Point(-2, -2);
                 pictureBox1.Image = MainPicture;
-                
+
+                if (FiguresFrontBuffer != null)
+                {
+                    FiguresFrontBuffer = null;
+                    RedoButton.Enabled = false;
+                }
+
             }
             catch { }
         }
@@ -158,20 +193,18 @@ namespace WindowsFormsApp1
         {
             numericUpDown1.Visible = false;
             TopsLabel.Visible = false;
-           
-            CurrentFigure = (Figure)Activator.CreateInstance(UsedTypes.ElementAt<Type>(comboBox1.SelectedIndex), -1, -1, gr, pen, FillColorPanel.BackColor);
 
+            ICreateFig CurrentCreator = Creators.ElementAt<ICreateFig>(comboBox1.SelectedIndex);
 
-            foreach (PropertyInfo pi in UsedTypes.ElementAt<Type>(comboBox1.SelectedIndex).GetProperties())
+            CurrentFigure = CurrentCreator.Create(-1, -1, gr, pen, FillColorPanel.BackColor);
+
+            if (CurrentCreator.TopsNeeded)
             {
-                if ((pi.Name == "TopAmount"))
-                {
-                    numericUpDown1.Visible = true;
-                    TopsLabel.Visible = true;
-                    break;
-                }
-
+                numericUpDown1.Visible = true;
+                TopsLabel.Visible = true;
             }
+            if (FiguresBackBuffer.Count > 0)
+                FiguresBackBuffer.ElementAt(0).EndOfCurrentFigure = true;
 
 
         }
@@ -210,7 +243,7 @@ namespace WindowsFormsApp1
 
 
 
-       
+
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -221,6 +254,67 @@ namespace WindowsFormsApp1
         {
 
         }
+
+        private void UndoButton_Click(object sender, EventArgs e)
+        {
+            int N = FiguresBackBuffer.Count;
+            if (N <= 0)
+                return;
+            if (FiguresFrontBuffer == null)
+                FiguresFrontBuffer = new UndoRedoStack();
+
+
+            Figure Last = FiguresBackBuffer.ElementAt(0);
+
+            Last.EndOfCurrentFigure = true;
+            FiguresFrontBuffer.Push(Last);
+            FiguresBackBuffer.Pop();
+
+
+            RedoButton.Enabled = true;
+
+            gr = Graphics.FromImage(MainPicture);
+            gr.Clear(pictureBox1.BackColor);
+
+            FiguresBackBuffer.DrawStack(gr);
+
+
+            pictureBox1.Image = MainPicture;
+
+            if (FiguresBackBuffer.Count <= 0)
+                UndoButton.Enabled = false;
+
+
+
+            ICreateFig CurrentCreator = Creators.ElementAt<ICreateFig>(comboBox1.SelectedIndex);
+            CurrentFigure = CurrentCreator.Create(-1, -1, gr, pen, FillColorPanel.BackColor);
+
+        }
+
+        private void RedoButton_Click(object sender, EventArgs e)
+        {
+            Figure tmp = FiguresFrontBuffer.Pop();
+            gr = Graphics.FromImage(MainPicture);
+            tmp.DrawPanel = gr;
+            tmp.Redraw();
+
+
+
+            FiguresBackBuffer.Push(tmp);
+
+
+
+            UndoButton.Enabled = true;
+
+            pictureBox1.Image = MainPicture;
+            gr.Dispose();
+            if (FiguresFrontBuffer.Count == 0)
+            {
+                RedoButton.Enabled = false;
+            }
+        }
+
+
 
         private void отменитьToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -234,72 +328,14 @@ namespace WindowsFormsApp1
     }
 
 
+
+
+
+
    
 
-  
 
-    public class UndoStack
-    {
-        private int StackSize = 10;
-        private Stack<Figure> LastFig;
-        private int n = 0;
-        public Graphics gr;
-
-        public UndoStack(int size)
-        {
-            StackSize = size;
-            LastFig = new Stack<Figure>();
-        }
-        public UndoStack()
-        {
-            LastFig = new Stack<Figure>();
-        }
-
-        public bool Push(Figure F)
-        {
-            if (n < StackSize)
-            {
-                LastFig.Push(F);
-                n++;
-                return true;
-            }
-            else
-                return false;
-        }
-
-        public Figure Pop()
-        {
-            if (n == 0)
-                return null;
-            else
-            {
-                Figure ret = LastFig.Pop();
-                n--;
-
-                Figure[] Arr = new Figure[StackSize];
-                int FigAmount = n, i;
-
-
-                for ( i = 0; i < n; i++)               
-                    Arr[i] = LastFig.Pop();
-
-                for (i = n -1 ; i >=0; i--)
-                {
-                    LastFig.Push(Arr[i]);
-                    Arr[i].DrawPanel = gr;
-                    Arr[i].EndPoint = Arr[i].EndPoint;
-
-                }
-
-
-
-
-                return ret;
-            }
-        }
-
-
-    }
+    
 
 
 }
