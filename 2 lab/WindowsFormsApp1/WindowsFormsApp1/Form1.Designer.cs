@@ -46,17 +46,15 @@
             this.label3 = new System.Windows.Forms.Label();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.файлToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.открытьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.сохранитьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.сохранитьКакToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.отменитьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.вернутьCTRLYToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.открытьToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.UndoButton = new System.Windows.Forms.Button();
             this.RedoButton = new System.Windows.Forms.Button();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.openDllDialog = new System.Windows.Forms.OpenFileDialog();
             this.openFileDialog2 = new System.Windows.Forms.OpenFileDialog();
-            this.открытьToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.PenWidthBar)).BeginInit();
@@ -213,8 +211,6 @@
             // файлToolStripMenuItem
             // 
             this.файлToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.открытьToolStripMenuItem,
-            this.сохранитьToolStripMenuItem,
             this.сохранитьКакToolStripMenuItem,
             this.отменитьToolStripMenuItem,
             this.вернутьCTRLYToolStripMenuItem,
@@ -222,18 +218,6 @@
             this.файлToolStripMenuItem.Name = "файлToolStripMenuItem";
             this.файлToolStripMenuItem.Size = new System.Drawing.Size(48, 20);
             this.файлToolStripMenuItem.Text = "Файл";
-            // 
-            // открытьToolStripMenuItem
-            // 
-            this.открытьToolStripMenuItem.Name = "открытьToolStripMenuItem";
-            this.открытьToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
-            this.открытьToolStripMenuItem.Text = "Открыть";
-            // 
-            // сохранитьToolStripMenuItem
-            // 
-            this.сохранитьToolStripMenuItem.Name = "сохранитьToolStripMenuItem";
-            this.сохранитьToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
-            this.сохранитьToolStripMenuItem.Text = "Сохранить";
             // 
             // сохранитьКакToolStripMenuItem
             // 
@@ -245,14 +229,23 @@
             // отменитьToolStripMenuItem
             // 
             this.отменитьToolStripMenuItem.Name = "отменитьToolStripMenuItem";
-            this.отменитьToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
+            this.отменитьToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.отменитьToolStripMenuItem.Text = "Отменить(CTRL+Z)";
+            this.отменитьToolStripMenuItem.Click += new System.EventHandler(this.отменитьToolStripMenuItem_Click);
             // 
             // вернутьCTRLYToolStripMenuItem
             // 
             this.вернутьCTRLYToolStripMenuItem.Name = "вернутьCTRLYToolStripMenuItem";
-            this.вернутьCTRLYToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
+            this.вернутьCTRLYToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.вернутьCTRLYToolStripMenuItem.Text = "Вернуть(CTRL+Y)";
+            this.вернутьCTRLYToolStripMenuItem.Click += new System.EventHandler(this.вернутьCTRLYToolStripMenuItem_Click);
+            // 
+            // открытьToolStripMenuItem1
+            // 
+            this.открытьToolStripMenuItem1.Name = "открытьToolStripMenuItem1";
+            this.открытьToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
+            this.открытьToolStripMenuItem1.Text = "Открыть";
+            this.открытьToolStripMenuItem1.Click += new System.EventHandler(this.открытьToolStripMenuItem1_Click);
             // 
             // UndoButton
             // 
@@ -286,13 +279,6 @@
             // 
             this.openFileDialog2.FileName = "openFileDialog2";
             this.openFileDialog2.FileOk += new System.ComponentModel.CancelEventHandler(this.openFileDialog2_FileOk);
-            // 
-            // открытьToolStripMenuItem1
-            // 
-            this.открытьToolStripMenuItem1.Name = "открытьToolStripMenuItem1";
-            this.открытьToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
-            this.открытьToolStripMenuItem1.Text = "Открыть";
-            this.открытьToolStripMenuItem1.Click += new System.EventHandler(this.открытьToolStripMenuItem1_Click);
             // 
             // Form1
             // 
@@ -345,8 +331,6 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem файлToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem открытьToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem сохранитьToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem сохранитьКакToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem отменитьToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem вернутьCTRLYToolStripMenuItem;
